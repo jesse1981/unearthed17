@@ -8,8 +8,7 @@ spl_autoload_register(function ($class) {
   include 'classes/' . $class . '.class.php';
 });
 
-$module = (isset($_GET["module"]))  ? $_GET["module"]:"index";
-if (!$module) $module = "index";
+$module = (isset($_GET["module"]) && !empty($_GET["module"]))  ? $_GET["module"]:"index";
 $action = (isset($_GET["action"]))  ? $_GET["action"]:"index";
 $id     = (isset($_GET["id"]))      ? $_GET["id"]:0;
 $format = (isset($_GET["format"]))  ? $_GET["format"]:"";

@@ -1,6 +1,9 @@
 
 RewriteEngine On
 
+RewriteBase /unearthed17/
+
+RewriteRule ^data - [L,NC]
 RewriteRule ^js - [L,NC]
 RewriteRule ^img - [L,NC]
 RewriteRule ^css - [L,NC]
