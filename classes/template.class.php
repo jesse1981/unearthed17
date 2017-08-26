@@ -3,8 +3,11 @@ class template {
   private $template = "_master.php";
   private $view = "";
 
-  private function loadPartialView() {
-
+  public function loadPartialView($filename) {
+    if (!file_exists($filename)) return "<h1>Error: $filename does not exist.</h1>";
+    ob_start();
+    include $filename;
+    return ob_get_clean();
   }
 
   public function setTemplate($name) {

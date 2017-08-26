@@ -11,18 +11,26 @@ class database {
       "<="
     );
 
-  public function __construct(){
-    return $this->connectPDO();
+  public function __construct($options=array()){
+    if (!$options) $options = array(
+      "TYPE"  => DB_TYPE,
+      "SERVER"=> DB_SERVER,
+      "PORT"  => DB_PORT,
+      "NAME"  => DB_NAME,
+      "USER"  => DB_USER,
+      "PASS"  => DB_PASS,
+    );
+    return $this->connectPDO($options);
   }
 
-  private function connectPDO() {
+  private function connectPDO($options) {
     try {
-      $this->type = DB_TYPE;
+      $this->type = $options["TYPE"];
       if ($this->type == "psql") $type = "pgsql";
       if ($this->type == "isql") $type = "firebird";
 
-      $dsn = $this->type.":host=".DB_SERVER.";port=".DB_PORT.";dbname=".DB_NAME;
-      $pdo = new PDO($dsn,DB_USER,DB_PASS);
+      $dsn = $this->type.":host=".$options["SERVER"].";port=".$options["PORT"].";dbname=".$options["NAME"];
+      $pdo = new PDO($dsn,$options["USER"],$options["PASS"]);
       $this->pdo = $pdo;
     } catch (Exception $ex) {
       $this->pdo = false;
