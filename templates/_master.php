@@ -24,6 +24,6 @@
     <script src="js/webvr-manager.js"></script>
   </head>
   <body>
-    <?php echo $content; ?>
+    <?php echo $view; ?>
   </body>
 </html>
