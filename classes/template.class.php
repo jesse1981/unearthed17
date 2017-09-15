@@ -1,6 +1,6 @@
 <?php
 class template {
-  private $template = "_master.php";
+  private $template = "master.php";
   private $view = "";
 
   public function loadPartialView($filename) {

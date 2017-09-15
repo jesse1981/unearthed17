@@ -1,0 +1,9 @@
+<script src="js/three.config.js"></script>
+<script src="js/es6-promise.min.js"></script>
+<script src="js/three.min.js"></script>
+<script src="js/three.flycontrols.js"></script>
+<script src="js/three.terrainloader.js"></script>
+<script src="js/VRControls.js"></script>
+<script src="js/VREffect.js"></script>
+<script src="js/webvr-polyfill.js"></script>
+<script src="js/webvr-manager.js"></script>

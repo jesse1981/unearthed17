@@ -19,7 +19,7 @@ foreach (array("module","action","id","format") as $k) define(strtoupper($k),$$k
 $settings = parse_ini_file('.env',true);
 foreach ($settings as $group=>$arr) {
     foreach ($arr as $k=>$v) {
-        define("$group"."_"."$k",$v,true);
+        define(strtoupper("$group"."_"."$k"),$v,true);
     }
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
 include_once 'config.php';
 $controller = new $module;
-$controller->$action();
+if (ID) $controller->$action(ID);
+else $controller->$action();
 ?>
