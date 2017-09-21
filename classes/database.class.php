@@ -273,9 +273,8 @@ class database {
       try {
           // Prepare statement
           $stmt = $this->pdo->prepare($sql);
-          $i = 1;
-          foreach ($params as $v) {
-              $stmt->bindValue($i,$v);
+          foreach ($params as $k=>$v) {
+              $stmt->bindParam(":$k",$v);
               $i++;
           }
           $res  = $stmt->execute();

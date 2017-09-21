@@ -18,13 +18,6 @@ class template {
     $this->view = $name;
     return $this;
   }
-
-  public function enableCOR() {
-    header('Access-Control-Allow-Origin: https://acresta.eps.blinkm.co');
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    header('Access-Control-Allow-Headers: X-Requested-With,content-type');
-    header('Access-Control-Allow-Credentials: true');
-  }
   public function output($cor=false) {
     if ($cor) $this->enableCOR();
     if ($this->view) $view = $this->loadPartialView("./views/".$this->view."/index.php");
