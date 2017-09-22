@@ -19,7 +19,6 @@ class template {
     return $this;
   }
   public function output($cor=false) {
-    if ($cor) $this->enableCOR();
     if ($this->view) $view = $this->loadPartialView("./views/".$this->view."/index.php");
     if (($this->template) && (file_exists("./templates/".$this->template))) include "./templates/".$this->template;
     else if ($view) echo $view;

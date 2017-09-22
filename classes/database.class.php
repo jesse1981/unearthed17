@@ -83,20 +83,20 @@ class database {
                   FROM information_schema.columns
                   WHERE table_name = ?";
           break;
-          case "psql":
-          $sql = "SELECT
-                          g.column_name,
-                          g.data_type,
-                          g.character_maximum_length,
-                          g.udt_name,
-                          CASE
-                            WHEN is_nullable = 'YES' THEN 'NO'
-                            ELSE 'YES'
-                          END as required,
-                          0 as extra
-                  FROM information_schema.columns as g
-                  WHERE table_name = '?'";
-          break;
+        case "psql":
+            $sql = "SELECT
+                            g.column_name,
+                            g.data_type,
+                            g.character_maximum_length,
+                            g.udt_name,
+                            CASE
+                              WHEN is_nullable = 'YES' THEN 'NO'
+                              ELSE 'YES'
+                            END as required,
+                            0 as extra
+                    FROM information_schema.columns as g
+                    WHERE table_name = '?'";
+            break;
         case "isql":
           $sql = 'SELECT  r.RDB$FIELD_NAME AS column_name,
                           r.RDB$DESCRIPTION AS field_description,
