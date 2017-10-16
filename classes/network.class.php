@@ -13,7 +13,7 @@ else {
     $origin = $_SERVER['REMOTE_ADDR'];
 }
 define('ORIGIN',$origin,true);
-define('REFERER',$_SERVER["HTTP_REFERER"],true);
+define('REFERER',$referer,true);
 define('IP',$_SERVER["SERVER_ADDR"],true);
 
 class network {
