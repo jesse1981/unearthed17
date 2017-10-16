@@ -81,7 +81,7 @@ class database {
                           END as required,
                           EXTRA as extra
                   FROM information_schema.columns
-                  WHERE table_name = ?";
+                  WHERE table_name = :table";
           break;
         case "psql":
             $sql = "SELECT
@@ -95,7 +95,7 @@ class database {
                             END as required,
                             0 as extra
                     FROM information_schema.columns as g
-                    WHERE table_name = '?'";
+                    WHERE table_name = :table";
             break;
         case "isql":
           $sql = 'SELECT  r.RDB$FIELD_NAME AS column_name,
@@ -133,7 +133,7 @@ class database {
                   LEFT JOIN RDB$FIELDS f ON r.RDB$FIELD_SOURCE = f.RDB$FIELD_NAME
                   LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID
                   LEFT JOIN RDB$CHARACTER_SETS cset ON f.RDB$CHARACTER_SET_ID = cset.RDB$CHARACTER_SET_ID
-                  WHERE r.RDB$RELATION_NAME='."'".'?'."'".'
+                  WHERE r.RDB$RELATION_NAME='."'".':table'."'".'
                   ORDER BY r.RDB$FIELD_POSITION;';
           break;
         case "mssql":
@@ -146,11 +146,11 @@ class database {
                           END as required,
                           0 as extra
                   FROM information_schema.columns
-                  WHERE table_name = '?'";
+                  WHERE table_name = :table";
                   break;
       }
       if ($sql) {
-        $tab = $this->query($sql,array($table));
+        $tab = $this->query($sql,array("table"=>$table));
 
         // Get the column usage
         for ($i=0;$i<count($tab);$i++)
@@ -172,8 +172,8 @@ class database {
                           REFERENCED_TABLE_NAME as referenced_table,
                           REFERENCED_COLUMN_NAME as referenced_column
                   FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-                  WHERE (TABLE_NAME = ? AND COLUMN_NAME = ? ) OR
-                        (REFERENCED_TABLE_NAME = ? AND REFERENCED_COLUMN_NAME = ? )";
+                  WHERE (TABLE_NAME = :table AND COLUMN_NAME = :field ) OR
+                        (REFERENCED_TABLE_NAME = :table AND REFERENCED_COLUMN_NAME = :field )";
           break;
         case "psql":
           $sql = "SELECT	constraint_name,
@@ -197,7 +197,7 @@ class database {
                     WHERE	o.contype = 'f'
                       AND o.conrelid IN (SELECT oid FROM pg_class c WHERE c.relkind = 'r')
                   ) as m
-                  WHERE	(source_table = '?' AND source_column = '?') OR
+                  WHERE	(source_table = :table AND source_column = :field) OR
                         (referenced_table = '?' AND referenced_column = '?')";
           break;
         case "isql":
@@ -216,8 +216,8 @@ class database {
 
                   WHERE detail_relation_constraints.rdb$constraint_type = 'FOREIGN KEY'
                     AND (
-                      (detail_relation_constraints.RDB$RELATION_NAME = '?' AND detail_index_segments.RDB$FIELD_NAME = '?') OR
-                      (master_relation_constraints.RDB$RELATION_NAME = '?' AND master_index_segments.RDB$FIELD_NAME = '?')
+                      (detail_relation_constraints.RDB$RELATION_NAME = :table AND detail_index_segments.RDB$FIELD_NAME = :field) OR
+                      (master_relation_constraints.RDB$RELATION_NAME = :table AND master_index_segments.RDB$FIELD_NAME = :field)
                     )";
           break;
         case "mssql":
@@ -244,12 +244,12 @@ class database {
                   AND KCU2.CONSTRAINT_NAME = RC.UNIQUE_CONSTRAINT_NAME
                   AND KCU2.ORDINAL_POSITION = KCU1.ORDINAL_POSITION
 
-                  WHERE (KCU1.TABLE_NAME = '?' AND KCU1.COLUMN_NAME = '?') OR
+                  WHERE (KCU1.TABLE_NAME = :table AND KCU1.COLUMN_NAME = :field) OR
                         (KCU2.TABLE_NAME = '?' AND KCU2.COLUMN_NAME = '?')";
           break;
       }
       if ($sql) {
-        $tab = $this->query($sql,array($table,$field,$table,$field));
+        $tab = $this->query($sql,array("table"=>$table,"field"=>$field));
 
         return $tab;
       }
@@ -290,13 +290,17 @@ class database {
     }
     else return false;
   }
-  public function put($table,$id=0) {
+  public function put($table,$data=array(),$id=0) {
     $fields     = array();
     $values     = array();
     $dtypes     = array();
     $dbTables   = $this->getTables();
     $dbFields   = $this->getFieldDefinitions($table);
     $id         = (is_numeric($id)) ? (int)$id:0;
+    $data       = (isset($_POST)) ? $_POST:$data;
+    if (!$data) {
+      return false;
+    }
     if (in_array($table,$dbTables)) {
       if ($id)    $sql = "UPDATE $table SET ";
       else        $sql = "INSERT INTO $table ";
@@ -304,15 +308,15 @@ class database {
       // Ensure all required values are met
       foreach ($dbFields as $a=>$v)
         if  (($dbFields[$a]["required"]=="YES") &&
-            ((!isset($_POST[$dbFields[$a]["column_name"]])) || (empty($_POST[$dbFields[$a]["column_name"]]))) &&
+            ((!isset($data[$dbFields[$a]["column_name"]])) || (empty($data[$dbFields[$a]["column_name"]]))) &&
             (strtolower($dbFields[$a]["extra"]) != "auto_increment" ))
           throw new Exception('Value for '.$dbFields[$a]["column_name"].' is required.');
 
       // Discover values
       foreach ($dbFields as $a) {
-        if ((isset($_POST[$a["column_name"]])) && (!empty($_POST[$a["column_name"]]))) {
+        if ((isset($data[$a["column_name"]])) && (!empty($data[$a["column_name"]]))) {
           $fields[] = $a["column_name"];
-          $values[] = $_POST[$a["column_name"]];
+          $values[] = $data[$a["column_name"]];
           $dtypes[] = $a["data_type"];
         }
       }
