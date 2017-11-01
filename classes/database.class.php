@@ -61,7 +61,7 @@ class database {
       }
       $tab = $this->query($sql);
       foreach ($tab as $table)
-        $result[] = ($this->getDbType()=="isql") ? $table["TABLE_NAME"]:$table["table_name"];
+        $result[] = ($this->getDbType()=="isql") ? strtolower($table["TABLE_NAME"]):$table["table_name"];
 
       return $result;
     }
@@ -267,14 +267,35 @@ class database {
                 }
     return $sql;
   }
+  private function convertType($type) {
+    $result = 0;
+    switch (strtoupper(substr($type,3))) {
+      case "STR":
+        $result = PDO::PARAM_STR;
+        break;
+      case "INT":
+        $result = PDO::PARAM_INT;
+        break;
+      case "BOO":
+        $result = PDO::PARAM_BOOL;
+        break;
+      case "BLO": // TODO: Verify
+        $result = PDO::PARAM_LOB;
+        break;
 
-  public function query($sql,$params=array()) {
+    }
+    return $result;
+  }
+
+  public function query($sql,$params=array(),$types=array()) {
     if ($this->pdo) {
       try {
           // Prepare statement
           $stmt = $this->pdo->prepare($sql);
+          $i = 0;
           foreach ($params as $k=>$v) {
-              $stmt->bindParam(":$k",$v);
+              if ($types) $stmt->bindParam(":$k",$v,$types[$i]);
+              else        $stmt->bindParam(":$k",$v);
               $i++;
           }
           $res  = $stmt->execute();
@@ -317,7 +338,7 @@ class database {
         if ((isset($data[$a["column_name"]])) && (!empty($data[$a["column_name"]]))) {
           $fields[] = $a["column_name"];
           $values[] = $data[$a["column_name"]];
-          $dtypes[] = $a["data_type"];
+          $dtypes[] = $this->convertType($a["data_type"]);
         }
       }
 
@@ -335,7 +356,7 @@ class database {
       }
 
       // Execute
-      $this->query($sql,$values);
+      $this->query($sql,$values,$dtypes);
       return ($id) ? $id:$this->pdo->lastInsertId();
     }
     else throw new Exception("Table $table does not exist!");
@@ -389,6 +410,32 @@ class database {
     }
 
     return $rows;
+  }
+  public function render($table,$id=0,$edit=false) {
+    $tabs = $this->getTables();
+    $form = "";
+    if (in_array($table,$tabs)) {
+      $form = '<form name="'.$table.'" id="'.$table.'">';
+      $defs = $this->getFieldDefinitions($table);
+
+      foreach ($defs as $d) {
+        $form .= '<label for="'.$d["column_name"].'">'.ucwords($d["column_name"]).'</label>';
+        $classes = ($d["required"]) ? "required":"";
+        if ($d["column_usage"]) {
+          // select box
+        }
+        else {
+          if (strtolower($d["data_type"])=="varchar" && (int)$d["character_maximum_length"]>128)
+            $form .= '<textarea name="'.$d["column_name"].'" id="'.$d["column_name"].'" class="'.$classes.'"></textarea>';
+          else {
+            $classes .= " ".$d["data_type"];
+            $form .= '<input name="'.$d["column_name"].'" id="'.$d["column_name"].'" class="'.$classes.'" />';
+          }
+        }
+      }
+      $form .= "</form>";
+    }
+    echo $form;
   }
 }
 ?>
